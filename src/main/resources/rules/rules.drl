@@ -1,0 +1,344 @@
+import com.drool.droolApp.model.Transaction;
+import com.drool.droolApp.model.OutputData;
+
+global com.drool.droolApp.model.OutputData outputData;
+
+dialect "mvel"
+
+rule "rule1"
+when
+   Transaction(cardCountry in ("Cuba","Syria") ||
+        amount > 0)
+//        if(true) do[de]
+   Transaction(sendCurrency == "GBP Sterling Pound" )
+//        outputdata : OutputData();
+then
+
+      System.out.println("Rule-1 Triggered condition -1");
+      outputData.setBlock(true);
+      outputData.setAddToRiskList(true);
+
+//then[de]
+//    System.out.println("Rule-1 Triggered condition -2");
+
+end;
+
+//rule "Rule-10"
+//    when
+//     Transaction(cardCountry == "Cuba" ,
+//        amount > 0)
+//    then
+//            outputData.setBlock(true);
+//            outputData.setAddToRiskList(true);
+//
+//end;
+rule "rule 2"
+when
+    demo: Transaction(
+        sendCountry == "Spain",
+        recipientCountry in("Dominican Republic", "El Salvador"),
+        cardCountry in ("Brazil", "Chile", "Colombia" , "Costa Rica" , "Germany" , "Guatemala" , "Panama" , "Uruguay"),
+        amount > 0,
+        sendCurrency == "GBP Sterling Pound"
+    )
+
+
+then
+            System.out.println("Rule-2 Triggered");
+            outputData.setBlock(true);
+            outputData.setAddToRiskList(true);
+end;
+
+
+//
+rule "rule 3"
+when
+    demo: Transaction( recipientCountry == "Russia"|| amount > 0,
+        sendCurrency == "GBP Sterling Pound"
+        )
+
+then
+
+         System.out.println("Rule-3 Triggered");
+         outputData.setBlock(true);
+         outputData.setAddToRiskList(true);
+         outputData.getExecutedRules().add("rule-3");
+
+end;
+
+rule "rule 4"
+when
+    demo: Transaction(recipientCountry == "Dominican Republic",
+        (binNumber == 5104 || binNumber == 53496),
+        sendCurrency == "GBP Sterling Pound"
+
+        )
+
+then
+
+       System.out.println("Rule-4 Triggered");
+       outputData.setBlock(true);
+       outputData.setAddToRiskList(true);
+
+end;
+
+
+
+rule "Rule-5"
+agenda-group "G1"
+when
+    demo: Transaction(paymentMethod == "ADYEN ANDROID",
+        amount > 2999,
+        sendCurrency == "GBP Sterling Pound"
+        )
+
+then
+       System.out.println("Rule-5 Triggered");
+       outputData.setBlock(true);
+       outputData.setAddToRiskList(true);
+
+end;
+
+
+rule "rule 6"
+when
+    demo: Transaction(sendCountry == "Canada",
+        amount > 3000,
+        sendCurrency == "Canadian Dollar"
+        )
+
+then
+
+        System.out.println("Rule-6 Triggered");
+        outputData.setHold(true);
+       outputData.setAddToRiskList(true);
+
+end;
+
+
+
+
+
+
+rule "Rule-7"
+when
+   Transaction(sendCountry == "South Africa",
+        firstPaid == true,
+        sendCurrency == "GBP Sterling Pound"
+        )
+
+
+then
+         System.out.println("Rule-7 Triggered");
+                 outputData.setHold(true);
+                outputData.setAddToRiskList(true);
+
+
+end;
+
+
+
+rule "rule 8"
+when
+    demo: Transaction(recipientCountry == "Sierra Leona",
+        sendCountry == "United States",
+        sendCurrency == "USD US Dollar",
+        binNumber in (4474166,474165,407221,431243,482854,448461,446539,486832,558669,
+        556931,432379,407222,547463,425907,430741,432388,401976,432377,414730,438884,464386,
+        473702,482850,432389,446540,425908,486827,446024,434260,442644,486830,482862,431247,
+        432386,446023,434258,414718,450457,482851,469022,558668,432371,482881,44652,434257,
+        434259,432372,432384,486831,482863,491989,432383,434256,400278,432376,455401,482890,
+        473703,432378,425909,450455,482864,482857,547464,482853,482866,467554,482865,482855,
+        432392,480801,482860,485620,432374,487309,435114,491986,482852,438516,407110,460609),
+        timeSinceFirstTransaction > 300,
+        amount > 800,
+        (threeDsCheck == "Fail" || threeDsCheck == "Missing" || threeDsCheck == null)
+
+        )
+
+then
+
+       System.out.println("Rule-8 Triggered");
+       outputData.setBlock(true);
+       outputData.setAddToRiskList(true);
+end;
+
+
+rule "rule 9"
+when
+   demo: Transaction(totalTransactionInTwelveHours >10,
+   newCardsAddedInADay >1)
+
+
+then
+
+        System.out.println("Rule-9 Triggered");
+        outputData.setTriggerOnTransaction(true);
+        outputData.setAddToRiskList(true);
+end;
+
+//rule-10
+
+//[GL:088] Not US - All, 3ds not pass, liability shift not pass, Cybersource, 1+ card added in 7 days, card country mismatch, ML 750+. Trigger on transaction IF
+//not sending from US (global excl. US)
+//paying with a debit/credit card which has
+//failed 3DS
+//failed liability shift
+//card issuer country <> country the user’s send country
+//User added 1 or more new debit/credit cards within 7 days of the transaction
+//Machine Learning /risk score > 750
+rule "rule 10"
+when
+   transaction: Transaction(sendCountry =="US",
+   threeDsCheck == "Fail",
+//   isLiabilityShiftPass == false,
+   mlScore>750
+
+   )
+
+
+then
+//       if(transaction.getCardIssuerCountry() == transaction.getSendCountry())
+//        {
+            System.out.println("Rule-10 Triggered");
+             outputData.setTriggerOnTransaction(true);
+            outputData.setAddToRiskList(true);
+
+//        }
+end;
+
+rule "rule 11"
+when
+   Transaction(sendCountry == "US",
+   recipientCountry == "Belarus",
+   cardIssuer == "Wells Fargo",
+   newCardsAddedInLastThreeDays >1,
+   daysSinceFirstTransaction>30,
+   mlScore>1)
+
+
+then
+
+        System.out.println("Rule-11 Triggered");
+        outputData.setTriggerOnTransaction(true);
+        outputData.setAddToRiskList(true);
+end;
+
+
+rule "rule 12"
+when
+    Transaction(sendCountry == "US",
+    daysSinceSignUp>400,
+    cardBin in("480209","480207"),
+    amount>500,
+    mlScore>500
+    )
+then
+
+        System.out.println("Rule-12 Triggered");
+        outputData.setTriggerOnTransaction(true);
+        outputData.setAddToRiskList(true);
+end;
+
+rule "rule 13"
+when
+    transaction :Transaction(sendCountry == "US",
+    amount>200,
+    deviceType == "mobile",
+    daysSinceFirstTransaction >100,
+    avsFail == true,
+
+//    isNewDevice == true,
+//            isNewRecipientCountry == true,
+
+    newCardsAddedInADay>1
+
+    )
+then
+
+        System.out.println("Rule-13 Triggered");
+        outputData.setTriggerOnTransaction(true);
+        outputData.setAddToRiskList(true);
+end;
+
+//[EU:148] ALL (Not in UK) - LATAM, using UK/SG/MY cards, liability shift not pass. Trigger on transaction IF
+//Send country is NOT UK (Global excl. UK)
+//Receive country is in LATAM region (CO,DO,MX etc)
+//Card issuer country is either UK, Singapore or Malaysia
+//Liability shift result on the card is not ‘pass’
+
+rule "rule 14"
+when
+    transaction: Transaction(sendCountry != "UK",
+    cardIssuerCountry in ("UK","Singapore","Malaysia"),
+//    isLiabilityShiftPass == false,
+
+//    latam region
+    recipientCountry in ("Argentina", "Belize", "Bolivia", "Brazil", "Chile", "Colombia", "Costa Rica", "Cuba",
+    "Dominican Republic", "Ecuador", "El Salvador", "Guatemala", "Guyana", "Haiti", "Honduras",
+     "Jamaica", "Mexico", "Nicaragua", "Panama", "Paraguay", "Peru", "Suriname Uruguay", "Venezuela")
+)
+
+
+then
+
+        System.out.println("Rule-14 Triggered");
+        outputData.setTriggerOnTransaction(true);
+        outputData.setAddToRiskList(true);
+end;
+
+//[NA:258] US - All (Not Philippines), First transaction Philippines, comcast.com & .edu domains, First 30 days, ML 1+. Trigger on transaction IF
+//Send country = US
+//Receive country is NOT Philippines (all excl. PH)
+//The user sent their first transaction to Philippines
+//The user’s email address domain is %comcast.com or %.edu
+//Within 30 days since their first transaction date
+//ML score > 1
+
+
+//The user sent their first transaction to Philippines
+
+rule "rule 15"
+when
+  transaction:  Transaction(sendCountry == "US",
+    emailDomain in ("comcast.com",".edu"),
+    daysSinceFirstTransaction<=30,
+    mlScore>1
+
+
+
+    )
+then
+              if((transaction.getRecipientCountry() !="Philippines" && transaction.getFirstPaid()!=true) ||
+              transaction.getRecipientCountry() =="Philippines" && transaction.getFirstPaid()==true ){
+                    System.out.println("Rule-15 Triggered");
+                    outputData.setTriggerOnTransaction(true);
+                    outputData.setAddToRiskList(true);
+              }
+
+
+
+
+end;
+
+//[GL:113] Maximum unique Senders per recipient within 1 day, Limit 20. Trigger on transaction IF
+//The recipient has also received funds from 19+ other distinct users with the last 24 hours
+
+
+
+
+
+
+
+
+
+//
+//[NA:313] US ATO, mobile, 100+days since first transaction, £200+ transaction amount, AVS fail, 1+cards added in 1 day, new device ID, new corridor, ML5+. Trigger on transaction IF
+//Send country = US
+//User device type = mobile
+//100+ days since user placed their 1st transaction
+//Transaction value > £200
+//Failed AVS on debit/credit card used
+//User added 1 or more new debit/credit cards within last 24 hours
+//Transaction created on a device that the user has not transacted from previously (or within last X days)
+//Transaction receive country is not a country that the user has sent to previously (or within last X days)
