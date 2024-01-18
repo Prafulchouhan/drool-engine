@@ -23,15 +23,7 @@ then
 
 end;
 
-//rule "Rule-10"
-//    when
-//     Transaction(cardCountry == "Cuba" ,
-//        amount > 0)
-//    then
-//            outputData.setBlock(true);
-//            outputData.setAddToRiskList(true);
-//
-//end;
+
 rule "rule 2"
 when
     demo: Transaction(
