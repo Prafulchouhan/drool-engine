@@ -15,6 +15,6 @@ public class OutputData {
     private Boolean review;
     private Boolean cancel;
     private Boolean addToRiskList;
-    private List<String> executedRules;
+    private String ruleName;
     private Boolean triggerOnTransaction;
 }
